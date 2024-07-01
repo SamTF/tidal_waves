@@ -60,7 +60,7 @@ class Day:
         self.date = date
         self.weekday = weekday
         self.tides = tides
-        self.datetime = timezone.localize(datetime.strptime(date, "%d/%m/%Y"))
+        self.datetime = timezone.localize(datetime.strptime(date, "%d/%m/%Y")).date()
     
     def __repr__(self) -> str:
         tides = "\n".join([str(tide) for tide in self.tides])
