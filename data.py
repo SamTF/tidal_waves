@@ -2,6 +2,11 @@
 
 # IMPORTS
 from typing import List
+from datetime import datetime
+import pytz
+
+# Timezone
+timezone = pytz.timezone('Europe/Lisbon')
 
 # TIDE
 class Tide:
@@ -55,6 +60,7 @@ class Day:
         self.date = date
         self.weekday = weekday
         self.tides = tides
+        self.datetime = timezone.localize(datetime.strptime(date, "%d/%m/%Y"))
     
     def __repr__(self) -> str:
         tides = "\n".join([str(tide) for tide in self.tides])
