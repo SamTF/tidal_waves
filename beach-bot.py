@@ -10,7 +10,7 @@ import pickle
 
 ###### CONSTANTS        ##########################################################
 TOKEN_FILE = '.bot.token'
-DATA = ''
+DATA = []
 
 
 ###### DISCORD STUFF  ############################################################
@@ -39,10 +39,20 @@ async def on_ready():
     print("Ready to hang loose dude!")
     print(bot.user.name)
 
-    # Read the tidal data from the pickle file
+    # Get current month and year as 0724
+    current_date = datetime.now()
+    f_date = current_date.strftime("%m%y")
+
     global DATA
-    with open('data.pkl', 'rb') as file:
-        DATA = pickle.load(file)
+
+    # Read the tidal data from all pickle files
+    for i in range(0, 6):
+        with open(f'data/tides_{f_date}_{i}.pickle', 'rb') as file:
+            DATA.append(pickle.load(file))
+
+    # global DATA
+    # with open('data.pkl', 'rb') as file:
+    #     DATA = pickle.load(file)
 
     await bot.change_presence(activity=discord.Game("🌊 Surfin' the waves 🏖️"))
 
@@ -57,6 +67,7 @@ async def on_ready():
     app_commands.Choice(name='Peniche', value='2'),
     app_commands.Choice(name='Ericeira', value='3'),
     app_commands.Choice(name='Cascais', value='4'),
+    app_commands.Choice(name='Comporta', value='5'),
 ])
 @app_commands.describe(time_period = 'Check for tides how far out? 🏄')
 @app_commands.choices(time_period=[
@@ -69,29 +80,33 @@ async def tides(ctx, spot:app_commands.Choice[str], time_period:app_commands.Cho
     '''
     Displays tidal information for the requested period of time.
     '''
+    print(f'>>> Requesting tides at {spot.name} for {time_period.value} by [{ctx.author.name}]')
+
+    # get dates
     today = datetime.today().date()
     tomorrow = today + timedelta(days=1)
 
-    print(f'>>> Requesting tides at {spot.name} for {time_period.value} by [{ctx.author.name}]')
-
+    # init vars
     days = []
     msg = ''
+    data = DATA[int(spot.value)]
 
+    # get data
     match time_period.value:
         case 'today':
-            days = [d for d in DATA if (d.datetime == today)]
+            days = [d for d in data if (d.datetime == today)]
             msg = f'Here are the tides at __{spot.name}__ today, dude 😎\n\n'
 
         case 'tomorrow':
-            days = [d for d in DATA if (d.datetime == tomorrow)]
+            days = [d for d in data if (d.datetime == tomorrow)]
             msg = f'This is what the waves are gonna look like __tomorrow at {spot.name}__, dude 🤙\n\n'
 
         case 'weekly':
-            days = [d for d in DATA if (d.datetime - today).days <= 7]
+            days = [d for d in data if (d.datetime - today).days <= 7]
             msg = 'Look at all those waves, bro 🌊\n\n'
 
         case _:
-            days = [d for d in DATA if (d.datetime == today)]
+            days = [d for d in data if (d.datetime == today)]
             msg = 'Here are the tides today\n\n'
     
     for d in days:
