@@ -4,14 +4,14 @@ import requests
 import lxml
 from typing import List
 import pickle
+from datetime import datetime
 
 from data import Tide, Day
+from spots import Spot, SPOTS
 
-### CONSTANTS
-wisuki = 'https://wisuki.com/tide/2450/sao-pedro-de-moel'
 
 ### FUNCTIONS
-def scrape_data() -> List[Day]:
+def scrape_data(location: Spot = SPOTS[0]) -> List[Day]:
     '''
     Scrapes all tidal data for the entire month, and saves into Day objects.
 
@@ -19,7 +19,7 @@ def scrape_data() -> List[Day]:
         List of Day objects
     '''
     # getting the website source code
-    source = requests.get(wisuki).text
+    source = requests.get(location.url).text
 
     # creating html parser object
     soup = BeautifulSoup(source, 'lxml')
@@ -74,8 +74,13 @@ def scrape_data() -> List[Day]:
 
         days_list.append(d)
     
+    # Get current month and year as 0724
+    current_date = datetime.now()
+    f_date = current_date.strftime("%m%y")
+
     # Save the data to disk
-    with open('data.pkl', 'wb') as file:
+    filename = f'data/tides_{f_date}_{location.id}.pickle'
+    with open(filename, 'wb') as file:
         pickle.dump(days_list, file)
 
     # Return the data
