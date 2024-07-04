@@ -7,6 +7,8 @@ from typing import Literal
 from datetime import datetime, timedelta
 import pickle
 
+import img_getter
+from spots import Spot, SPOTS
 
 ###### CONSTANTS        ##########################################################
 TOKEN_FILE = '.bot.token'
@@ -76,7 +78,7 @@ async def on_ready():
     app_commands.Choice(name='weekly', value='weekly'),
 ])
 @app_commands.guilds(discord.Object(id=349267379991347200))
-async def tides(ctx, spot:app_commands.Choice[str], time_period:app_commands.Choice[str], fruits: Literal['apple', 'banana', 'cherry']) -> None:
+async def tides(ctx, spot:app_commands.Choice[str], time_period:app_commands.Choice[str], type: Literal['message', 'embed']) -> None:
     '''
     Displays tidal information for the requested period of time.
     '''
@@ -95,23 +97,23 @@ async def tides(ctx, spot:app_commands.Choice[str], time_period:app_commands.Cho
     match time_period.value:
         case 'today':
             days = [d for d in data if (d.datetime == today)]
-            msg = f'Here are the tides at __{spot.name}__ today, dude 😎\n\n'
+            msg = f'Here are the tides at __{spot.name}__ today, dude 😎\n'
 
         case 'tomorrow':
             days = [d for d in data if (d.datetime == tomorrow)]
-            msg = f'This is what the waves are gonna look like __tomorrow at {spot.name}__, dude 🤙\n\n'
+            msg = f'This is what the waves are gonna look like __tomorrow at {spot.name}__, dude 🤙\n'
 
         case 'weekly':
             days = [d for d in data if (d.datetime - today).days <= 7]
-            msg = 'Look at all those waves, bro 🌊\n\n'
+            msg = 'Look at all those waves, bro 🌊\n'
 
         case _:
             days = [d for d in data if (d.datetime == today)]
-            msg = 'Here are the tides today\n\n'
+            msg = 'Here are the tides today\n'
     
     for d in days:
         formatted_date = d.datetime.strftime("%-d/%-m")
-        msg += f"**__{d.weekday}__**__ ({formatted_date}):__\n"
+        msg += f"\n**__{d.weekday}__**__ ({formatted_date}):__\n"
 
         for t in d.tides:
             icon = '🌊' if t.tide == True else '🏖️'
@@ -120,7 +122,23 @@ async def tides(ctx, spot:app_commands.Choice[str], time_period:app_commands.Cho
 
     print(msg)
 
-    await ctx.send(f"{msg}")
+    # Check for return type
+    if type == 'message' and time_period.value != 'weekly':
+        await ctx.reply(msg)
+        return
+
+    # format data fetched as an embed
+    embed = discord.Embed(
+        title=f'{spot.name}',
+        description=msg,
+        colour=0x2596be,
+        url=SPOTS[int(spot.value)].url
+    )
+    embed.set_thumbnail(url=img_getter.get_thumb(spot.name))
+    embed.set_image(url=img_getter.get_img(spot.name))
+
+    # send the embed
+    await ctx.send(embed = embed)
 
 ###### RUNNING THE BOT #################################################
 if __name__ == "__main__":
