@@ -30,8 +30,17 @@ LO_TIDE_MARKER_IMG = Image.open(LO_TIDE_MARKER).convert('RGBA')
 
 ### Constant positions
 TIME_MARKER_POS_Y = 490
+TIDE_MARKER_POS_Y = 428
 MARKER_MAX_X = 800
 MARKER_MIN_X = 17
+
+### Colours
+HI_TIDE_COLOUR = '#D82E2A'
+LO_TIDE_COLOUR = '#A1CC39'
+
+# test constants
+high_tide = { 'time' : '17:35', 'height' : '3.5' }
+low_tide = { 'time' : '11:08', 'height' : '0.9' }
 
 
 def create_image() -> Image:
@@ -53,7 +62,7 @@ def create_image() -> Image:
         TextAnchor.LEFT
     )
     weekday = Text(
-        'TODAY | July 5',
+        'TODAY | July 8',
         (30, 59),
         Font(FontStyle.CONDENSED, FontSize.MEDIUM),
         "#FDC017",
@@ -75,25 +84,54 @@ def create_image() -> Image:
         draw.text(t.position, t.text, fill=t.colour, font=t.font, anchor=t.anchor)
     
     # Adding day progress marker
-    x = 1
     time_marker = TIME_MARKER_IMG.copy()
     canvas.paste(time_marker, (get_progress_position(), TIME_MARKER_POS_Y), mask=time_marker)
+
+    # Adding tide markers
+    hi_tide_marker = HI_TIDE_MARKER_IMG.copy()
+    canvas.paste(hi_tide_marker, (get_progress_position(datetime.strptime(high_tide['time'], "%H:%M").time()), TIDE_MARKER_POS_Y), mask=hi_tide_marker)
+
+    lo_tide_marker = LO_TIDE_MARKER_IMG.copy()
+    canvas.paste(lo_tide_marker, (get_progress_position(datetime.strptime(low_tide['time'], "%H:%M").time()), TIDE_MARKER_POS_Y), mask=lo_tide_marker)
+
+    # Adding tide information
+    hi_tide_height = Text(
+        high_tide['height'],
+        (get_progress_position(datetime.strptime(high_tide['time'], "%H:%M").time()) + 14, 444),
+        Font(FontStyle.BOLD_CONDENSED, FontSize.XS),
+        HI_TIDE_COLOUR,
+        TextAnchor.CENTER   
+    )
+
+    lo_tide_height = Text(
+        low_tide['height'],
+        (get_progress_position(datetime.strptime(low_tide['time'], "%H:%M").time()) + 14, 520),
+        Font(FontStyle.BOLD_CONDENSED, FontSize.XS),
+        LO_TIDE_COLOUR,
+        TextAnchor.CENTER
+    )
+
+    # Add Text objects to list
+    tides = [hi_tide_height, lo_tide_height]
+
+    # Add text to the canvas
+    for t in tides:
+        draw.text(t.position, t.text, fill=t.colour, font=t.font, anchor=t.anchor)
     
     # DEBUGGING
-    canvas.show()
     canvas.save("test.png", "PNG", quality=100)
     print(canvas)
 
 
 
-def get_progress_position():
-    now = (datetime.now().time())                                                       # Get current time
-    minutes_passed = (now.hour - 9) * 60 + now.minute                                   # Calculate the minutes passed since 9 AM
+def get_progress_position(time: datetime.time = None) -> int:
+    # Get current time if no time is given
+    if not time:
+        time = (datetime.now().time())
+
+    minutes_passed = (time.hour - 9) * 60 + time.minute                                 # Calculate the minutes passed since 9 AM
     percentage = (minutes_passed / (12 * 60))                                           # Calculate the percentage of time passed between 9 AM and 9 PM
     position = int(MARKER_MIN_X + (MARKER_MAX_X - MARKER_MIN_X) * percentage)           # Calculate position between X = 17 and X = 800
-
-    print(f"The current time is {now}. The percentage of time passed between 9 AM and 9 PM is {percentage}%.")
-    print(f'Marker position: X {position}')
 
     return position
 
