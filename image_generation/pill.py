@@ -125,10 +125,44 @@ def create_image() -> Image:
     for t in tides:
         draw.text(t.position, t.text, fill=t.colour, font=t.font, anchor=t.anchor)
     
+    # Add tide times
+    for t in [high_tide, low_tide]:
+        text_img = draw_tide_time(t['time'])
+
+        canvas.paste(text_img, (get_progress_position(datetime.strptime(t['time'], "%H:%M").time()) - 2, 448), mask=text_img)
+
+    
     # DEBUGGING
     canvas.save("test.png", "PNG", quality=100)
     print(canvas)
 
+
+def draw_tide_time(time: str) -> Image:
+    '''
+    Draws a text image rotated 90 degrees for the given time.
+
+    Parameters:
+    - time: str
+        The time to draw in the format "HH:MM"
+
+    Returns:
+    - Image
+        The image of the text
+    '''
+    # Create a new image for the rotated text
+    f = Font(FontStyle.BOLD_CONDENSED, FontSize.XS)
+    t = time
+
+    # Create temp image
+    rotated_text = Image.new('RGBA', (50, 50))
+    rotated_draw = ImageDraw.Draw(rotated_text)
+
+    # draw text and rotate the temp image
+    rotated_draw.text((0, 0), t, fill='white', font=f.font)
+    rotated_text = rotated_text.rotate(90, expand=True)
+
+    # return the rotated text image
+    return rotated_text
 
 
 def get_progress_position(time: datetime.time = None) -> int:
@@ -183,5 +217,5 @@ def tide_graph_x_position(first_low_tide_hour: int, first_low_tide_minute: int) 
 # Debugging
 if __name__ == "__main__":
     create_image()
-    # x = calculate_x_position(12, 00)
+    # x = tide_graph_x_position(12, 00)
     # print(x)
