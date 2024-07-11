@@ -11,6 +11,10 @@ class Spot:
     def __repr__(self) -> str:
         return self.name
 
+    @property
+    def coordinates(self) -> tuple[float, float]:
+        return (self.lat, self.lng)
+
 SPOTS = [
     Spot(name='São Pedro de Moel',  lat=39.759, lng=-9.033, id=0, url='https://pt.wisuki.com/tide/2450/sao-pedro-de-moel'),
     Spot(name='Nazaré',             lat=39.601, lng=-9.071, id=1, url='https://pt.wisuki.com/tide/2434/nazare'),
