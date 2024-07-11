@@ -23,6 +23,15 @@ def get_code_from_json(forecast) -> str:
 
 # Get current weather at given location
 def current_weather(city: Tuple[float, float]) -> Tuple[int, int]:
+    '''
+    Fetches the current air temperature in ºC and the weather condition from weatherapi.com
+
+    Parameters:
+        city (Tuple[float, float]): The latitude and longitude of the location
+
+    Returns:
+        Tuple[int, int]: The current temperature and the weather condition code
+    '''
     response = requests.get(WEATHERAPI.format(API_KEY, city[0], city[1]))
     data = response.json()
     weather = data['current']
