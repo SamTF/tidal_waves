@@ -1,3 +1,4 @@
+import os
 from enum import Enum
 from PIL import ImageFont
 
@@ -5,9 +6,9 @@ class FontStyle(Enum):
     '''
     Styles available for the font. Basically just the font weight and wether it's condensed or not.
     '''
-    BOLD            = "fonts/MyriadPro-Bold.otf"
-    CONDENSED       = "fonts/MyriadPro-Cond.otf"
-    BOLD_CONDENSED  = "fonts/MyriadPro-BoldCond.otf"
+    BOLD            = os.path.join(os.path.dirname(__file__), "fonts/MyriadPro-Bold.otf")
+    CONDENSED       = os.path.join(os.path.dirname(__file__), "fonts/MyriadPro-Cond.otf")
+    BOLD_CONDENSED  = os.path.join(os.path.dirname(__file__), "fonts/MyriadPro-BoldCond.otf")
     # BOLD_SMALL      = ImageFont.truetype('MyriadPro-Bold.otf',       36)
 
 class FontSize(Enum):
