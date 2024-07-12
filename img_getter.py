@@ -37,13 +37,13 @@ def get_img(search: str) -> str:
         - URL of the image
     '''
 
-    results = DDGS().images(keywords=search, max_results=10, safesearch="off")
-
     try:
+        results = DDGS().images(keywords=search, max_results=10, safesearch="off")
         i = random.randrange(0, 10)
         image_url = results[i]['image']
     except:
-        image_url = 'https://i.imgur.com/fCyBeda.jpg'
+        # image_url = 'https://i.imgur.com/fCyBeda.jpg'
+        image_url = 'https://www.evasoes.pt/files/2020/09/38332521_WEB_54049224_GL31082020MARIAJOAOGALA002_WEB_resultado-960x640.jpg'
 
     return image_url
 
