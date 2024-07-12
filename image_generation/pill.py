@@ -23,32 +23,62 @@ BG_COLOUR   = (255, 255, 255)
 MODE        = 'RGB'
 
 ### Image templates and assets file paths
-TEMPLATE        = os.path.join(os.path.dirname(__file__), 'templates/template.png')
-TIME_MARKER     = os.path.join(os.path.dirname(__file__), 'templates/time_marker.png')
-HI_TIDE_MARKER  = os.path.join(os.path.dirname(__file__), 'templates/hi_tide_marker.png')
-LO_TIDE_MARKER  = os.path.join(os.path.dirname(__file__), 'templates/lo_tide_marker.png')
-TIDE_GRAPH      = os.path.join(os.path.dirname(__file__), 'templates/tide_graph.png')
+TEMPLATE            = os.path.join(os.path.dirname(__file__), 'templates/template.png')
+TEMPLATE_COMPACT    = os.path.join(os.path.dirname(__file__), 'templates/template_compact.png')
+TIME_MARKER         = os.path.join(os.path.dirname(__file__), 'templates/time_marker.png')
+HI_TIDE_MARKER      = os.path.join(os.path.dirname(__file__), 'templates/hi_tide_marker.png')
+LO_TIDE_MARKER      = os.path.join(os.path.dirname(__file__), 'templates/lo_tide_marker.png')
+TIDE_GRAPH          = os.path.join(os.path.dirname(__file__), 'templates/tide_graph.png')
 
 ### Open template and asset images
 TEMPLATE_IMG = Image.open(TEMPLATE)
+TEMPLATE_COMPACT_IMG = Image.open(TEMPLATE_COMPACT)
 TIME_MARKER_IMG = Image.open(TIME_MARKER).convert('RGBA')
 HI_TIDE_MARKER_IMG = Image.open(HI_TIDE_MARKER).convert('RGBA')
 LO_TIDE_MARKER_IMG = Image.open(LO_TIDE_MARKER).convert('RGBA')
 TIDE_GRAPH_IMG = Image.open(TIDE_GRAPH).convert('RGBA')
 
-### Constant positions
+### Constant positions - FULL
 TIME_MARKER_POS_Y = 490
 TIDE_MARKER_POS_Y = 428
 MARKER_MAX_X = 800
 MARKER_MIN_X = 17
 TIDE_GRAPH__POS_Y = 442
+HIGH_TIDE_INFO_POS_Y = 444
+LOW_TIDE_INFO_POS_Y = 520
+TIDE_TIME_POS_Y = 448
+
+### Constant positions - COMPACT
+TIME_MARKER_POS_Y_COMPACT = 239
+TIDE_MARKER_POS_Y_COMPACT = 177
+MARKER_MAX_X_COMPACT = 800
+MARKER_MIN_X_COMPACT = 17
+TIDE_GRAPH__POS_Y_COMPACT = 191
+HIGH_TIDE_INFO_POS_Y_COMPACT = 193
+LOW_TIDE_INFO_POS_Y_COMPACT = 269
+TIDE_TIME_POS_Y_COMPACT = 200
 
 ### Colours
 HI_TIDE_COLOUR = '#D82E2A'
 LO_TIDE_COLOUR = '#A1CC39'
 
 ### MAIN FUNCTION
-def create_image(date: str, spot_name: str, temperature: int, high_tide: Dict[str, Union[time, str]], low_tide:  Dict[str, Union[time, str]], today: bool = False) -> Image:
+def create_image(date: str, spot_name: str, temperature: int, high_tide: Dict[str, Union[time, str]], low_tide:  Dict[str, Union[time, str]], today: bool = False, compact: bool = False) -> Image:
+    '''
+    Creates an image with information about the tides at a beach on a specific date.
+
+    Args:
+        - date (str): The date for which the tides should be displayed.
+        - spot_name (str): The name of the beach.
+        - temperature (int): The air temperature at the beach.
+        - high_tide: A dictionary containing the time and height of the high tide.
+        - low_tide: A dictionary containing the time and height of the low tide.
+        - today (bool, optional): Whether the information is for today. Defaults to False.
+        - compact (bool, optional): Whether the image should be compact or full-sized. Defaults to False.
+
+    Returns:
+        Image: The generated image
+    '''
     print('###' * 5)
     print(f'[pill.py] >>> Creating image for {spot_name} on {date}')
     print(f'High Tide: {high_tide}')
@@ -56,8 +86,24 @@ def create_image(date: str, spot_name: str, temperature: int, high_tide: Dict[st
     # CREATING CANVAS
     # canvas = Image.new(MODE, CANVAS_SIZE, BG_COLOUR)
 
-    # Load the starting canvas from disk
-    canvas = Image.open(TEMPLATE).copy()
+    # Load the starting canvas from disk - Full Size or Compact
+    canvas = Image.open(TEMPLATE).copy() if not compact else Image.open(TEMPLATE_COMPACT).copy()
+
+    # Init vars for element positions depending on size requested
+    if not compact:
+        time_marker_pos_y   =   TIME_MARKER_POS_Y
+        tide_marker_pos_y   =   TIDE_MARKER_POS_Y
+        tide_graph_pos_y    =   TIDE_GRAPH__POS_Y
+        high_tide_pos_y     =   HIGH_TIDE_INFO_POS_Y
+        low_tide_pos_y      =   LOW_TIDE_INFO_POS_Y
+        tide_time_pos_y     =   TIDE_TIME_POS_Y
+    else:
+        time_marker_pos_y   =   TIME_MARKER_POS_Y_COMPACT
+        tide_marker_pos_y   =   TIDE_MARKER_POS_Y_COMPACT
+        tide_graph_pos_y    =   TIDE_GRAPH__POS_Y_COMPACT
+        high_tide_pos_y     =   HIGH_TIDE_INFO_POS_Y_COMPACT
+        low_tide_pos_y      =   LOW_TIDE_INFO_POS_Y_COMPACT
+        tide_time_pos_y     =   TIDE_TIME_POS_Y_COMPACT
 
     # Enable editing the image
     draw = ImageDraw.Draw(canvas)
@@ -91,33 +137,34 @@ def create_image(date: str, spot_name: str, temperature: int, high_tide: Dict[st
         draw.text(t.position, t.text, fill=t.colour, font=t.font, anchor=t.anchor)
     
     # Adding the tide graph
-    x = tide_graph_x_position(11, 8)
-    canvas.paste(TIDE_GRAPH_IMG, (x, 442), mask=TIDE_GRAPH_IMG)
+    hour, minute = low_tide['time'].hour, low_tide['time'].minute
+    tide_graph_x = tide_graph_x_position(hour, minute)
+    canvas.paste(TIDE_GRAPH_IMG, (tide_graph_x, tide_graph_pos_y), mask=TIDE_GRAPH_IMG)
     
     # Adding day progress marker ONLY IF INFORMATION IS FOR TODAY
     if today:
         time_marker = TIME_MARKER_IMG.copy()
-        canvas.paste(time_marker, ( get_progress_position(), TIME_MARKER_POS_Y ), mask=time_marker)
+        canvas.paste(time_marker, ( get_progress_position(), time_marker_pos_y ), mask=time_marker)
 
     # Adding tide markers
     hi_tide_marker = HI_TIDE_MARKER_IMG.copy()
     canvas.paste(
         hi_tide_marker,
-        ( get_progress_position(high_tide['time']), TIDE_MARKER_POS_Y ),
+        ( get_progress_position(high_tide['time']), tide_marker_pos_y ),
         mask=hi_tide_marker
     )
 
     lo_tide_marker = LO_TIDE_MARKER_IMG.copy()
     canvas.paste(
         lo_tide_marker,
-        ( get_progress_position(low_tide['time']), TIDE_MARKER_POS_Y ),
+        ( get_progress_position(low_tide['time']), tide_marker_pos_y ),
         mask=lo_tide_marker
     )
 
     # Adding tide information
     hi_tide_height = Text(
         high_tide['height'],
-        (get_progress_position(high_tide['time']) + 14, 444),
+        (get_progress_position(high_tide['time']) + 14, high_tide_pos_y),
         Font(FontStyle.BOLD_CONDENSED, FontSize.XS),
         HI_TIDE_COLOUR,
         TextAnchor.CENTER   
@@ -125,7 +172,7 @@ def create_image(date: str, spot_name: str, temperature: int, high_tide: Dict[st
 
     lo_tide_height = Text(
         low_tide['height'],
-        (get_progress_position(low_tide['time']) + 14, 520),
+        (get_progress_position(low_tide['time']) + 14, low_tide_pos_y),
         Font(FontStyle.BOLD_CONDENSED, FontSize.XS),
         LO_TIDE_COLOUR,
         TextAnchor.CENTER
@@ -143,7 +190,7 @@ def create_image(date: str, spot_name: str, temperature: int, high_tide: Dict[st
         # text_img = draw_tide_time(t['time'].strftime("%H:%M"))
         text_img = draw_tide_time(t['time'].strftime("%I:%M"))
 
-        canvas.paste(text_img, (get_progress_position(t['time']) - 2, 448), mask=text_img)
+        canvas.paste(text_img, (get_progress_position(t['time']) - 2, tide_time_pos_y), mask=text_img)
 
     
     # DEBUGGING
