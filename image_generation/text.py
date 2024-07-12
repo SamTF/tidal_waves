@@ -1,7 +1,7 @@
 ### IMPORTS
 from enum import Enum
 from typing import Tuple
-from fonts import Font
+from image_generation.fonts import Font
 
 # Enum for text anchor pivot
 class TextAnchor(Enum):
