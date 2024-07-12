@@ -1,12 +1,15 @@
 ### Generates images displaying the tidal information
 
 ### IMPORTS
+# File system
+import os
+
 from PIL import Image, ImageDraw, ImageFont     # Importing PIL to generate and manipulate  images
 from PIL import ImageColor                      # To convert #Hex colour to R,G,B
 
 # Font and Text helper class
-from fonts import Font, FontStyle, FontSize
-from text import TextAnchor, Text
+from image_generation.fonts import Font, FontStyle, FontSize
+from image_generation.text import TextAnchor, Text
 
 # Date and time
 from datetime import datetime, time
@@ -20,11 +23,11 @@ BG_COLOUR   = (255, 255, 255)
 MODE        = 'RGB'
 
 ### Image templates and assets file paths
-TEMPLATE = 'templates/template.png'
-TIME_MARKER = 'templates/time_marker.png'
-HI_TIDE_MARKER = 'templates/hi_tide_marker.png'
-LO_TIDE_MARKER = 'templates/lo_tide_marker.png'
-TIDE_GRAPH = 'templates/tide_graph.png'
+TEMPLATE        = os.path.join(os.path.dirname(__file__), 'templates/template.png')
+TIME_MARKER     = os.path.join(os.path.dirname(__file__), 'templates/time_marker.png')
+HI_TIDE_MARKER  = os.path.join(os.path.dirname(__file__), 'templates/hi_tide_marker.png')
+LO_TIDE_MARKER  = os.path.join(os.path.dirname(__file__), 'templates/lo_tide_marker.png')
+TIDE_GRAPH      = os.path.join(os.path.dirname(__file__), 'templates/tide_graph.png')
 
 ### Open template and asset images
 TEMPLATE_IMG = Image.open(TEMPLATE)
@@ -46,6 +49,10 @@ LO_TIDE_COLOUR = '#A1CC39'
 
 ### MAIN FUNCTION
 def create_image(date: str, spot_name: str, temperature: int, high_tide: Dict[str, Union[time, str]], low_tide:  Dict[str, Union[time, str]], today: bool = False) -> Image:
+    print('###' * 5)
+    print(f'[pill.py] >>> Creating image for {spot_name} on {date}')
+    print(f'High Tide: {high_tide}')
+    print(f'Low Tide: {low_tide}')
     # CREATING CANVAS
     # canvas = Image.new(MODE, CANVAS_SIZE, BG_COLOUR)
 
@@ -142,6 +149,8 @@ def create_image(date: str, spot_name: str, temperature: int, high_tide: Dict[st
     # DEBUGGING
     canvas.save("test.png", "PNG", quality=100)
     print(canvas)
+
+    return canvas
 
 
 def draw_tide_time(time: str) -> Image:
