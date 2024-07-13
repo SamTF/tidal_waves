@@ -1,14 +1,20 @@
 ###### IMPORTS          ##########################################################
+# discord.py
 import discord
 from discord.ext import commands, tasks
 from discord import app_commands
 
+# standard library
 from typing import Literal
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 import pickle
 
+# My modules
 import img_getter
 from spots import Spot, SPOTS
+from weather import get_weather
+from weather import weather_codes
+from image_generation.pill import create_image
 
 ###### CONSTANTS        ##########################################################
 TOKEN_FILE = '.bot.token'
@@ -78,7 +84,7 @@ async def on_ready():
     app_commands.Choice(name='weekly', value='weekly'),
 ])
 @app_commands.guilds(discord.Object(id=349267379991347200))
-async def tides(ctx, spot:app_commands.Choice[str], time_period:app_commands.Choice[str], type: Literal['message', 'embed']) -> None:
+async def tides(ctx, spot:app_commands.Choice[str], time_period:app_commands.Choice[str], type: Literal['image', 'message', 'embed']) -> None:
     '''
     Displays tidal information for the requested period of time.
     '''
@@ -92,6 +98,7 @@ async def tides(ctx, spot:app_commands.Choice[str], time_period:app_commands.Cho
     days = []
     msg = ''
     data = DATA[int(spot.value)]
+    spot_object = SPOTS[int(spot.value)]
 
     # get data
     match time_period.value:
@@ -120,25 +127,58 @@ async def tides(ctx, spot:app_commands.Choice[str], time_period:app_commands.Cho
             bold = '**' if t.tide == False else ''
             msg += f"{icon}  {bold}{t.time}{bold}  ({t.height})\n"
 
+    
+    # get current today is fetching information for today
+    temp = None
+    if time_period.value == 'today':
+        temp, wwo_code = get_weather.current_weather(spot_object.coordinates)
+        conditions = weather_codes.WWO_CODE[wwo_code]
+        weather_icon = weather_codes.WEATHER_SYMBOL[conditions]
+        msg += f'\n\nCurrent weather: **{temp}ºC** // {conditions} {weather_icon}'
+    
     print(msg)
 
     # Check for return type
+    # Normal message
     if type == 'message' and time_period.value != 'weekly':
         await ctx.reply(msg)
-        return
+        # return
+    
+    # Generate Image
+    if type == 'image' and time_period.value != 'weekly':
+        # get tides occuring during the day        
+        high_tide, low_tide = days[0].daytime_tides()
 
-    # format data fetched as an embed
-    embed = discord.Embed(
-        title=f'{spot.name}',
-        description=msg,
-        colour=0x2596be,
-        url=SPOTS[int(spot.value)].url
-    )
-    embed.set_thumbnail(url=img_getter.get_thumb(spot.name))
-    embed.set_image(url=img_getter.get_img(spot.name))
+        full_date = f"{time_period.value.upper()} | {today.strftime('%-d %B')}"
 
-    # send the embed
-    await ctx.send(embed = embed)
+
+        image = create_image(
+            full_date,
+            spot.name,
+            { 'time' : high_tide.datetime, 'height' : high_tide.height[:-1] },
+            { 'time' : low_tide.datetime, 'height' : low_tide.height[:-1] },
+            temp if temp else 0,
+            time_period.value == 'today',
+            True
+        )
+        image.seek(0)
+        
+        await ctx.send(file=discord.File(image, 'tide_report.png'))
+    
+    # Semd embed
+    else:
+        # format data fetched as an embed
+        embed = discord.Embed(
+            title=f'{spot.name}',
+            description=msg,
+            colour=0x2596be,
+            url=spot_object.url
+        )
+        embed.set_thumbnail(url=img_getter.get_thumb(spot.name))
+        embed.set_image(url=img_getter.get_img(spot.name))
+
+        # send the embed
+        await ctx.send(embed = embed)
 
 ###### RUNNING THE BOT #################################################
 if __name__ == "__main__":
