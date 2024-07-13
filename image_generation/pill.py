@@ -3,6 +3,7 @@
 ### IMPORTS
 # File system
 import os
+from io import BytesIO                          # Used to store the output images in memory instead of saving them to disk
 
 from PIL import Image, ImageDraw, ImageFont     # Importing PIL to generate and manipulate  images
 from PIL import ImageColor                      # To convert #Hex colour to R,G,B
@@ -63,21 +64,21 @@ HI_TIDE_COLOUR = '#D82E2A'
 LO_TIDE_COLOUR = '#A1CC39'
 
 ### MAIN FUNCTION
-def create_image(date: str, spot_name: str, temperature: int, high_tide: Dict[str, Union[time, str]], low_tide:  Dict[str, Union[time, str]], today: bool = False, compact: bool = False) -> Image:
+def create_image(date: str, spot_name: str, high_tide: Dict[str, Union[time, str]], low_tide:  Dict[str, Union[time, str]], temperature: int = 0, today: bool = False, compact: bool = False) -> BytesIO:
     '''
     Creates an image with information about the tides at a beach on a specific date.
 
     Args:
         - date (str): The date for which the tides should be displayed.
         - spot_name (str): The name of the beach.
-        - temperature (int): The air temperature at the beach.
         - high_tide: A dictionary containing the time and height of the high tide.
         - low_tide: A dictionary containing the time and height of the low tide.
+        - temperature (int): The air temperature at the beach.
         - today (bool, optional): Whether the information is for today. Defaults to False.
         - compact (bool, optional): Whether the image should be compact or full-sized. Defaults to False.
 
     Returns:
-        Image: The generated image
+        - BytesIO: The generated image as a bytes object
     '''
     print('###' * 5)
     print(f'[pill.py] >>> Creating image for {spot_name} on {date}')
@@ -123,17 +124,20 @@ def create_image(date: str, spot_name: str, temperature: int, high_tide: Dict[st
         "#FDC017",
         TextAnchor.LEFT
     )
-    temp = Text(
-        f'{temperature}º',
-        (810, 120),
-        Font(FontStyle.BOLD, FontSize.XL),
-        "#FDC017",
-        TextAnchor.RIGHT
-    )
+    header_texts = [spot, weekday]
+    
+    if today and temperature > 0:
+        temp = Text(
+            f'{temperature}º',
+            (810, 120),
+            Font(FontStyle.BOLD, FontSize.XL),
+            "#FDC017",
+            TextAnchor.RIGHT
+        )
+        header_texts.append(temp)
 
     # Add text to the canvas
-    texts = [spot, weekday, temp]
-    for t in texts:
+    for t in header_texts:
         draw.text(t.position, t.text, fill=t.colour, font=t.font, anchor=t.anchor)
     
     # Adding the tide graph
@@ -194,10 +198,14 @@ def create_image(date: str, spot_name: str, temperature: int, high_tide: Dict[st
 
     
     # DEBUGGING
-    canvas.save("test.png", "PNG", quality=100)
-    print(canvas)
+    # canvas.save("test.png", "PNG", quality=100)
+    # print(canvas)
 
-    return canvas
+    # Saving the created image to memory in BytesIO as a "file-like object" -> https://stackoverflow.com/questions/60006794/send-image-from-memory
+    tide_card = BytesIO()
+    canvas.save(tide_card, format='PNG')
+
+    return tide_card
 
 
 def draw_tide_time(time: str) -> Image:
