@@ -1,8 +1,8 @@
 # this file contains the data classes used in this project
 
 # IMPORTS
-from typing import List
-from datetime import datetime
+from typing import List, Tuple
+from datetime import datetime, time
 import pytz
 
 # Timezone
@@ -32,6 +32,10 @@ class Tide:
         self.tide = tide
         self.time = time
         self.height = height
+    
+    @property
+    def datetime(self) -> time:
+        return datetime.strptime(self.time, "%H:%M").time()
     
     def __repr__(self) -> str:
         '''
@@ -66,3 +70,22 @@ class Day:
         tides = "\n".join([str(tide) for tide in self.tides])
 
         return f"{self.date} {self.weekday}\n------------------------\n{tides}"
+    
+    def daytime_tides(self) -> Tuple[Tide]:
+        '''
+        Returns the tides in the day that are in the daytime as a tuple of Tide objects.
+        '''
+        start_time = time(9,0)
+        end_time = time(21,0)
+        tides = []
+
+        for t in self.tides:
+            tide_time = datetime.strptime(t.time, "%H:%M").time()
+
+            if start_time <= tide_time <= end_time:
+                tides.append(t)
+        
+        high_tide = next((t for t in tides if t.tide), None)
+        low_tide = next((t for t in tides if not t.tide), None)
+
+        return (high_tide, low_tide)
