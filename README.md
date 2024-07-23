@@ -36,7 +36,7 @@ The white needle represents the current time. The big number in the top right is
 
 ### See the commands LIVE in action:
 
-![Animated GIF!!](https://i.imgur.com/z0XhgCr.gif)
+![Animated GIF!!](https://i.imgur.com/YkkNsmV.gif)
 
 ## Spots
 Since I am currently fetching the data by web-scraping (a free API is too limited, sadly), the locations for which **Tidal Waves** reports are pre-selected and not dynamic. If you would like me to add a particular beach, just let me know.
