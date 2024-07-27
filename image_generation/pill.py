@@ -5,6 +5,7 @@
 import os
 from io import BytesIO                          # Used to store the output images in memory instead of saving them to disk
 
+# Pillow
 from PIL import Image, ImageDraw, ImageFont     # Importing PIL to generate and manipulate  images
 from PIL import ImageColor                      # To convert #Hex colour to R,G,B
 
@@ -14,6 +15,9 @@ from image_generation.text import TextAnchor, Text
 
 # Date and time
 from datetime import datetime, time
+
+# Weather codes
+from weather import weather_codes
 
 # Typing
 from typing import Dict, Union
@@ -64,7 +68,7 @@ HI_TIDE_COLOUR = '#D82E2A'
 LO_TIDE_COLOUR = '#A1CC39'
 
 ### MAIN FUNCTION
-def create_image(date: str, spot_name: str, high_tide: Dict[str, Union[time, str]], low_tide:  Dict[str, Union[time, str]], temperature: int = 0, today: bool = False, compact: bool = False) -> BytesIO:
+def create_image(date: str, spot_name: str, high_tide: Dict[str, Union[time, str]], low_tide:  Dict[str, Union[time, str]], temperature: int = 0, wwo_code: int = 0, today: bool = False, compact: bool = False) -> BytesIO:
     '''
     Creates an image with information about the tides at a beach on a specific date.
 
@@ -74,16 +78,14 @@ def create_image(date: str, spot_name: str, high_tide: Dict[str, Union[time, str
         - high_tide: A dictionary containing the time and height of the high tide.
         - low_tide: A dictionary containing the time and height of the low tide.
         - temperature (int): The air temperature at the beach.
+        - wwo_code (int): The WWO code for the weather conditions.
         - today (bool, optional): Whether the information is for today. Defaults to False.
         - compact (bool, optional): Whether the image should be compact or full-sized. Defaults to False.
 
     Returns:
         - BytesIO: The generated image as a bytes object
     '''
-    print('###' * 5)
     print(f'[pill.py] >>> Creating image for {spot_name} on {date}')
-    print(f'High Tide: {high_tide}')
-    print(f'Low Tide: {low_tide}')
     # CREATING CANVAS
     # canvas = Image.new(MODE, CANVAS_SIZE, BG_COLOUR)
 
@@ -109,29 +111,32 @@ def create_image(date: str, spot_name: str, high_tide: Dict[str, Union[time, str
     # Enable editing the image
     draw = ImageDraw.Draw(canvas)
 
+    # Getting accent colour
+    accent = weather_codes.ACCENT_COLOUR[weather_codes.WWO_CODE[wwo_code]]
+
     # Create Header Text objects
     spot = Text(
         spot_name,
         (30, 127),
         Font(FontStyle.BOLD_CONDENSED, FontSize.LARGE),
-        "#FDC017",
+        accent,
         TextAnchor.LEFT
     )
     weekday = Text(
         date,
         (30, 59),
         Font(FontStyle.CONDENSED, FontSize.MEDIUM),
-        "#FDC017",
+        accent,
         TextAnchor.LEFT
     )
     header_texts = [spot, weekday]
     
-    if today and temperature > 0:
+    if temperature:
         temp = Text(
             f'{temperature}º',
             (810, 120),
             Font(FontStyle.BOLD, FontSize.XL),
-            "#FDC017",
+            accent,
             TextAnchor.RIGHT
         )
         header_texts.append(temp)
@@ -291,7 +296,6 @@ def tide_graph_x_position(first_low_tide_hour: int, first_low_tide_minute: int) 
     while new_x > MAX_X:
         new_x -= RANGE_X
     
-    print(new_x)
     # return round(new_x, 2)
     return int(round(new_x, 0))
 
@@ -305,5 +309,3 @@ if __name__ == "__main__":
         { 'time' : datetime.strptime('11:08', "%H:%M").time(), 'height' : '0.9' },
         True
     )
-    # x = tide_graph_x_position(12, 00)
-    # print(x)
