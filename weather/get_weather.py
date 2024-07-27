@@ -14,6 +14,7 @@ with open('.weatherapi.key', 'r') as file:
 
 ### CONSTANTS
 WEATHERAPI = 'http://api.weatherapi.com/v1/current.json?key={}&q={},{}'
+WEATHERAPI_TMRW = 'http://api.weatherapi.com/v1/forecast.json?key={}&q={},{}&days=1'
 
 ###### HELPERS #################################################
 # Gets the URL to the icon from weatherapi.com and extracts only the 3 digit icon code
@@ -41,7 +42,28 @@ def current_weather(city: Tuple[float, float]) -> Tuple[int, int]:
 
     return (temp, condition)
 
+# Get tomorrow's weather
+def tomorrow_weather(city: Tuple[float, float]) -> Tuple[int, int]:
+    '''
+    Fetches the tomorrow's air temperature in ºC and the weather condition from weatherapi.com
+
+    Parameters:
+        city (Tuple[float, float]): The latitude and longitude of the location
+
+    Returns:
+        Tuple[int, int]: The tomorrow's temperature and the weather condition code
+    '''
+    response = requests.get(WEATHERAPI_TMRW.format(API_KEY, city[0], city[1]))
+    data = response.json()
+    weather = data['forecast']['forecastday'][1]['day']
+
+    temp = int(weather['avgtemp_c'])
+    condition = get_code_from_json(weather)
+
+    return (temp, condition)
 
 if __name__ == '__main__':
     x = current_weather((39.756, -9.033))
     print(x)
+    y = tomorrow_weather((39.756, -9.033))
+    print(y)
