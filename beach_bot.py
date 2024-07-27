@@ -127,15 +127,28 @@ async def tides(ctx, spot:app_commands.Choice[str], time_period:app_commands.Cho
             bold = '**' if t.tide == False else ''
             msg += f"{icon}  {bold}{t.time}{bold}  ({t.height})\n"
 
-    
-    # get current today is fetching information for today
-    temp = None
-    if time_period.value == 'today':
-        temp, wwo_code = get_weather.current_weather(spot_object.coordinates)
+
+    # Add extra information if not weekly
+    if time_period.value != 'weekly':
+        # information for today
+        temp = None
+        if time_period.value == 'today':
+            temp, wwo_code = get_weather.current_weather(spot_object.coordinates)
+            full_date = f"{spot.name} | {today.strftime('%-d %B')}"
+            text = '\n\nCurrent weather:'
+
+        # information for tomorrow
+        elif time_period.value == 'tomorrow':
+            temp, wwo_code = get_weather.tomorrow_weather(spot_object.coordinates)
+            full_date = f"{time_period.value.upper()} | {tomorrow.strftime('%-d %B')}"
+            text = '\n\nWeather forecast:'
+
+        # formatting data
         conditions = weather_codes.WWO_CODE[wwo_code]
         weather_icon = weather_codes.WEATHER_SYMBOL[conditions]
-        msg += f'\n\nCurrent weather: **{temp}ºC** // {conditions} {weather_icon}'
+        msg += f'{text} **{temp}ºC** // {conditions} {weather_icon}'
     
+    # log print
     print(msg)
 
     # Check for return type
@@ -149,7 +162,10 @@ async def tides(ctx, spot:app_commands.Choice[str], time_period:app_commands.Cho
         # get tides occuring during the day        
         high_tide, low_tide = days[0].daytime_tides()
 
-        full_date = f"{time_period.value.upper()} | {today.strftime('%-d %B')}"
+        if time_period.value == 'today':
+            full_date = f"{spot.name} | {today.strftime('%-d %B')}"
+        else:
+            full_date = f"{time_period.value.upper()} | {tomorrow.strftime('%-d %B')}"
 
 
         image = create_image(
@@ -157,7 +173,8 @@ async def tides(ctx, spot:app_commands.Choice[str], time_period:app_commands.Cho
             spot.name,
             { 'time' : high_tide.datetime, 'height' : high_tide.height[:-1] },
             { 'time' : low_tide.datetime, 'height' : low_tide.height[:-1] },
-            temp if temp else 0,
+            temp if temp else None,
+            wwo_code,
             time_period.value == 'today',
             True
         )
@@ -165,7 +182,7 @@ async def tides(ctx, spot:app_commands.Choice[str], time_period:app_commands.Cho
         
         await ctx.send(file=discord.File(image, 'tide_report.png'))
     
-    # Semd embed
+    # Send embed
     else:
         # format data fetched as an embed
         embed = discord.Embed(
