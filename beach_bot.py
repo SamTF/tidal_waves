@@ -131,16 +131,17 @@ async def tides(ctx, spot:app_commands.Choice[str], time_period:app_commands.Cho
     # Add extra information if not weekly
     if time_period.value != 'weekly':
         # information for today
-        temp = None
         if time_period.value == 'today':
+            print('TODAY')
             temp, wwo_code = get_weather.current_weather(spot_object.coordinates)
-            full_date = f"{spot.name} | {today.strftime('%-d %B')}"
+            print(wwo_code)
+            full_date = f"TODAY | {today.strftime('%-d %B')}"
             text = '\n\nCurrent weather:'
 
         # information for tomorrow
         elif time_period.value == 'tomorrow':
             temp, wwo_code = get_weather.tomorrow_weather(spot_object.coordinates)
-            full_date = f"{time_period.value.upper()} | {tomorrow.strftime('%-d %B')}"
+            full_date = f"TOMORROW | {tomorrow.strftime('%-d %B')}"
             text = '\n\nWeather forecast:'
 
         # formatting data
@@ -161,12 +162,6 @@ async def tides(ctx, spot:app_commands.Choice[str], time_period:app_commands.Cho
     if type == 'image' and time_period.value != 'weekly':
         # get tides occuring during the day        
         high_tide, low_tide = days[0].daytime_tides()
-
-        if time_period.value == 'today':
-            full_date = f"{spot.name} | {today.strftime('%-d %B')}"
-        else:
-            full_date = f"{time_period.value.upper()} | {tomorrow.strftime('%-d %B')}"
-
 
         image = create_image(
             full_date,
