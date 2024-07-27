@@ -22,13 +22,13 @@ Examples of a given command and the corresponding output generated.
 
 `/tide Comporta today image`
 
-![Comporta](https://i.imgur.com/kdiSMKN.png)
+![Comporta](https://i.imgur.com/67mniUF.png)
 
 The white needle represents the current time. The big number in the top right is the current weather at the location. These two pieces of data are only shown when fetching information for the current day/
 
 `/tide Nazaré tomorrow image`
 
-![Nazaré](https://i.imgur.com/OWfxTOy.png)
+![Nazaré](https://i.imgur.com/vlEEn4N.png)
 
 `/tide "São Pedro de Moel" today embed`
 
@@ -36,7 +36,7 @@ The white needle represents the current time. The big number in the top right is
 
 ### See the commands LIVE in action:
 
-![Animated GIF!!](https://i.imgur.com/YkkNsmV.gif)
+![Animated GIF!!](https://i.imgur.com/1A5bY5m.gif)
 
 ## Spots
 Since I am currently fetching the data by web-scraping (a free API is too limited, sadly), the locations for which **Tidal Waves** reports are pre-selected and not dynamic. If you would like me to add a particular beach, just let me know.
