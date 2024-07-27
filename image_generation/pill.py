@@ -12,6 +12,7 @@ from PIL import ImageColor                      # To convert #Hex colour to R,G,
 # Font and Text helper class
 from image_generation.fonts import Font, FontStyle, FontSize
 from image_generation.text import TextAnchor, Text
+from image_generation import recolour
 
 # Date and time
 from datetime import datetime, time
@@ -34,6 +35,7 @@ TIME_MARKER         = os.path.join(os.path.dirname(__file__), 'templates/time_ma
 HI_TIDE_MARKER      = os.path.join(os.path.dirname(__file__), 'templates/hi_tide_marker.png')
 LO_TIDE_MARKER      = os.path.join(os.path.dirname(__file__), 'templates/lo_tide_marker.png')
 TIDE_GRAPH          = os.path.join(os.path.dirname(__file__), 'templates/tide_graph.png')
+ICONS_DIR           = os.path.join(os.path.dirname(__file__), 'icons/')
 
 ### Open template and asset images
 TEMPLATE_IMG = Image.open(TEMPLATE)
@@ -113,6 +115,7 @@ def create_image(date: str, spot_name: str, high_tide: Dict[str, Union[time, str
 
     # Getting accent colour
     accent = weather_codes.ACCENT_COLOUR[weather_codes.WWO_CODE[wwo_code]]
+    accent_rgb = ImageColor.getcolor(accent, 'RGB') # converting it to RGB for the recolour script
 
     # Create Header Text objects
     spot = Text(
@@ -200,6 +203,15 @@ def create_image(date: str, spot_name: str, high_tide: Dict[str, Union[time, str
         text_img = draw_tide_time(t['time'].strftime("%I:%M"))
 
         canvas.paste(text_img, (get_progress_position(t['time']) - 2, tide_time_pos_y), mask=text_img)
+
+    # Loading the corresponding weather condition icon
+    icon_name =  weather_codes.WWO_CODE[wwo_code]
+    icon_path = f'{ICONS_DIR}{icon_name}.png'
+    icon = Image.open(icon_path)
+
+    # formatting and pasting weather icon
+    icon_coloured = recolour.recolour(icon, (250, 253, 255), accent_rgb)
+    canvas.paste(icon_coloured, (610, 85), mask=icon_coloured)
 
     
     # DEBUGGING
