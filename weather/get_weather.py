@@ -14,7 +14,7 @@ with open('.weatherapi.key', 'r') as file:
 
 ### CONSTANTS
 WEATHERAPI = 'http://api.weatherapi.com/v1/current.json?key={}&q={},{}'
-WEATHERAPI_TMRW = 'http://api.weatherapi.com/v1/forecast.json?key={}&q={},{}&days=1'
+WEATHERAPI_TMRW = 'http://api.weatherapi.com/v1/forecast.json?key={}&q={},{}&days=3'
 
 ###### HELPERS #################################################
 # Gets the URL to the icon from weatherapi.com and extracts only the 3 digit icon code
